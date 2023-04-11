@@ -77,14 +77,50 @@ class Simulation:
 pygame.init()
 
 
-WIDTH = 1280
-HEIGHT = 720
+WIDTH = 1920
+HEIGHT = 1080
 RADIUS = 25
 
 # circle_3 = Player()
 # circle_3 = circle_3.circle(display, [pj.x, pj.y])
 
-def Simulation(WIDTH, HEIGHT):
+def create_border(width, height, center):
+    body = pymunk.Body(body_type=pymunk.Body.STATIC)
+    body.position = center
+
+    size = (width, height)
+    rectangle = pymunk.Poly.create_box(body, size)
+    rectangle.color = (0, 255, 0, 0) #RGBA
+    rectangle.elasticity = 0.2
+    rectangle.friction = 0.32
+    return rectangle
+
+
+
+def spawn_bird(mass, radius, position):
+    body = pymunk.Body()
+    body.position = position
+
+    bird = pymunk.Circle(body, radius)
+    bird.mass = mass
+    bird.color = (255, 0, 0, 200) #RGBA
+    bird.elasticity = 0.95
+    bird.friction = 0.1
+    
+    return bird
+
+    
+def distance(mouse_pos, bird_pos):
+    dx = mouse_pos[0] - bird_pos[0]
+    dy = mouse_pos[1] - bird_pos[1]
+
+    d = np.sqrt(dx**2 + dy**2)
+    return d
+
+def angle(mouse_pos, bird_pos):
+    return math.atan2((mouse_pos[1] - bird_pos[1]), (mouse_pos[0] - bird_pos[0])) #we want radians
+
+def Simulation(WIDTH, HEIGHT, RADIUS):
     time = 0
     
     display = pygame.display.set_mode((WIDTH,HEIGHT))
@@ -93,16 +129,69 @@ def Simulation(WIDTH, HEIGHT):
     running = True
     background_color = "white"
     clock = pygame.time.Clock()
-    # circle_2 = [50, HEIGHT/2]
+    
 
-    # simulation = pymunk.Space()
+    simulation = pymunk.Space()
+    simulation.gravity = (0, 981)
 
+    options = pymunk.pygame_util.DrawOptions(display)
+    mass = 5
+
+
+    #bird
+    bird = spawn_bird(mass, RADIUS, (100,100))
+    simulation.add(bird.body, bird)
+
+    #floor
+    floor = create_border(WIDTH*5, RADIUS*2, (WIDTH/2, HEIGHT-RADIUS))
+    simulation.add(floor.body, floor)
+    
     while running:
+        mouse = mouse_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
+            #Keyboard Events
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    print("Reset")
+
+            #Mouse Events                                    ### 1 - Left Click 
+            if event.type == pygame.MOUSEBUTTONDOWN:         ### 2 - Middle Mouse Click
+                if event.button == 1:                        ### 3 - Right CLick
+                    
+                    if bird:
+                        line_distance = distance(mouse, bird.body.position)
+                        proj_angle = angle(mouse, bird.body.position)
+                        force_x = line_distance * math.cos(proj_angle) * 5
+                        force_y = line_distance * math.sin(proj_angle) * 5
+                        bird.body.apply_impulse_at_local_point((force_x, force_y), (0, 0))
+                                                             ### 4 - Scroll Up
+                                                             ### 5 - Scroll Down
+            
+            if bird:
+                if bird.body.position[1] > 2000:
+                    simulation.remove(bird)
+                    print()
+                else:
+                    print(bird.body.position)
+                    aim_line = [mouse, bird.body.position] 
+                    pygame.draw.line(display, (0,0,0), aim_line[0], aim_line[1])
+
+
+
+                       
+
+                                                            
+
         display.fill(background_color)
+
+       
+        simulation.debug_draw(options)
+        simulation.step(1/60)
+        
+        
 
         clock.tick(60)
         time+=1/60
@@ -125,7 +214,7 @@ def Simulation(WIDTH, HEIGHT):
         #     circle_3.update(display)
         #     print(circle_3.vy)
         
-        circle_3.update(display)
+        #circle_3.update(display)  ### Old
 
         # if (mouse_location[0] > 1280-50):
         #     mouse_location[0] = 1230
@@ -157,4 +246,4 @@ def Simulation(WIDTH, HEIGHT):
         pygame.display.flip()
         
         
-Simulation(WIDTH, HEIGHT)
+Simulation(WIDTH, HEIGHT, RADIUS)
