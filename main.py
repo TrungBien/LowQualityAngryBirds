@@ -158,6 +158,9 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
 
             #Keyboard Events
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+
                 if event.key == pygame.K_r:
                     
                     print("Reset")
