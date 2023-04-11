@@ -84,6 +84,19 @@ RADIUS = 25
 # circle_3 = Player()
 # circle_3 = circle_3.circle(display, [pj.x, pj.y])
 
+def wood_structure(width, height, center):
+    body = pymunk.Body(body_type=pymunk.Body.DYNAMIC)
+    body.position = (1000, 400)
+
+    size = (60, 200)
+    wood = pymunk.Poly.create_box(body, size)
+    wood.color = (0, 0, 255, 0)
+    wood.elasticity = 0.5
+    wood.friction = 0.4
+    return wood
+
+
+
 def create_border(width, height, center):
     body = pymunk.Body(body_type=pymunk.Body.STATIC)
     body.position = center
@@ -91,8 +104,8 @@ def create_border(width, height, center):
     size = (width, height)
     rectangle = pymunk.Poly.create_box(body, size)
     rectangle.color = (0, 255, 0, 0) #RGBA
-    rectangle.elasticity = 0.2
-    rectangle.friction = 0.32
+    rectangle.elasticity = 0.5
+    rectangle.friction = 0.50
     return rectangle
 
 
@@ -105,7 +118,7 @@ def spawn_bird(mass, radius, position):
     bird.mass = mass
     bird.color = (255, 0, 0, 200) #RGBA
     bird.elasticity = 0.95
-    bird.friction = 0.1
+    bird.friction = 0.14
     
     return bird
 
@@ -135,19 +148,35 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
     simulation.gravity = (0, 981)
 
     options = pymunk.pygame_util.DrawOptions(display)
-    mass = 5
+    mass = 4
 
 
     #bird
-    bird = spawn_bird(mass, RADIUS, (100,100))
+    bird = spawn_bird(mass, RADIUS, (100,1000))
     simulation.add(bird.body, bird)
 
+   
     #floor
-    floor = create_border(WIDTH*5, RADIUS*2, (WIDTH/2, HEIGHT-RADIUS))
+    floor = create_border(WIDTH, RADIUS*1.8, (WIDTH/2, HEIGHT-RADIUS))
+    left_wall = create_border(RADIUS*2, HEIGHT*10, (RADIUS, HEIGHT/2))
+    right_wall = create_border(RADIUS*2, HEIGHT*10, (WIDTH, HEIGHT/2))
+    ceiling = create_border(WIDTH, RADIUS*1.8, (WIDTH/2, RADIUS))
+    wood = create_border(60, 200, (1000, 600))
+    
+
+    
     simulation.add(floor.body, floor)
+    simulation.add(left_wall.body, left_wall)
+    simulation.add(right_wall.body, right_wall)
+    simulation.add(ceiling.body, ceiling)
+
+    # wood.body.body_type = pymunk.Body.DYNAMIC
+    simulation.add(wood.body, wood)
+
     
     while running:
         mouse = mouse_pos()
+        display.fill(background_color)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -155,6 +184,7 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
             #Keyboard Events
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
+                    wood.body.body_type = pymunk.Body.DYNAMIC
                     print("Reset")
 
             #Mouse Events                                    ### 1 - Left Click 
@@ -164,20 +194,13 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
                     if bird:
                         line_distance = distance(mouse, bird.body.position)
                         proj_angle = angle(mouse, bird.body.position)
-                        force_x = line_distance * math.cos(proj_angle) * 5
-                        force_y = line_distance * math.sin(proj_angle) * 5
+                        force_x = line_distance * math.cos(proj_angle) * 6
+                        force_y = line_distance * math.sin(proj_angle) * 6
                         bird.body.apply_impulse_at_local_point((force_x, force_y), (0, 0))
                                                              ### 4 - Scroll Up
                                                              ### 5 - Scroll Down
             
-            if bird:
-                if bird.body.position[1] > 2000:
-                    simulation.remove(bird)
-                    print()
-                else:
-                    print(bird.body.position)
-                    aim_line = [mouse, bird.body.position] 
-                    pygame.draw.line(display, (0,0,0), aim_line[0], aim_line[1])
+       
 
 
 
@@ -185,8 +208,16 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
 
                                                             
 
-        display.fill(background_color)
-
+        
+        if bird:
+            if bird.body.position[1] > 2000:
+                simulation.add_post_step_callback(simulation.remove,bird)
+                simulation.add_post_step_callback(simulation.remove, bird.body)
+                print("Removed")
+            else:
+                #print(bird.body.position)
+                aim_line = [mouse, bird.body.position] 
+                pygame.draw.line(display, (0,0,0), aim_line[0], aim_line[1])
        
         simulation.debug_draw(options)
         simulation.step(1/60)
@@ -196,52 +227,6 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
         clock.tick(60)
         time+=1/60
 
-        # if (circle_2[0] < 1280-50):
-        #     circle_2 = move(circle_2, 1)
-        # else:
-        #     print("Collision")
-        # mouse_location = list(mouse_pos())
-
-
-        #basic border collision
-
-        # if (circle_3.y >= 720-50):
-        #     circle_3.y = 720-50
-        #     circle_3.vy *= -1
-        #     circle_3.update(display)
-        #     print(circle_3.vy)
-        # else:
-        #     circle_3.update(display)
-        #     print(circle_3.vy)
-        
-        #circle_3.update(display)  ### Old
-
-        # if (mouse_location[0] > 1280-50):
-        #     mouse_location[0] = 1230
-        #     draw_circ(display, mouse_location)
-        # elif (mouse_location[0] < 50):
-        #     mouse_location[0] = 50
-        #     draw_circ(display, mouse_location)   
-        # elif (mouse_location[1] > 720-50):
-        #     mouse_location[1] = 720-50
-        #     draw_circ(display, mouse_location)
-        # elif (mouse_location[1] < 50):
-        #     mouse_location[1] = 50
-        #     draw_circ(display, mouse_location)
-
-        
-        # else:
-        #     draw_circ(display, mouse_location)
-
-
-        # if (circle_2[0] == 1280):
-        #     print("Reached the end")
-        #     print(time)
-        # elif circle_2[0] == 1280-50:
-        #     print("Circle edge hits border")
-        # draw_circ(display, circle_2)
-        
-        # draw_circ(display, mouse_pos())
         #update window
         pygame.display.flip()
         
