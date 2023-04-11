@@ -93,6 +93,7 @@ def wood_structure(width, height, center):
     wood.color = (0, 0, 255, 0)
     wood.elasticity = 0.5
     wood.friction = 0.4
+    wood.mass = 10
     return wood
 
 
@@ -106,6 +107,7 @@ def create_border(width, height, center):
     rectangle.color = (0, 255, 0, 0) #RGBA
     rectangle.elasticity = 0.5
     rectangle.friction = 0.50
+    rectangle.mass = 5.0
     return rectangle
 
 
