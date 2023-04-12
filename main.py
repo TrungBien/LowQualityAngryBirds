@@ -2,13 +2,7 @@ import numpy as np
 import pygame
 import pymunk
 import pymunk.pygame_util
-import matplotlib.pyplot as plt
 import math
-from scipy.integrate import ode
-
-
-
-
 
 pygame.init()
 
@@ -16,8 +10,6 @@ pygame.init()
 WIDTH = 1920
 HEIGHT = 1080
 RADIUS = 25
-
-
 
 def mouse_pos():
     mouse = pygame.mouse.get_pos()
@@ -73,7 +65,7 @@ def spawn_bird(mass, radius, position):
     bird = pymunk.Circle(body, radius)
     bird.mass = mass
     bird.color = (255, 0, 0, 200) #RGBA
-    bird.elasticity = 0.95
+    bird.elasticity = 0.90
     bird.friction = 0.14
     bird.collision_type = 1
     
@@ -113,7 +105,7 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
     
 
     simulation = pymunk.Space()
-    simulation.gravity = (0, 981)
+    simulation.gravity = (0,981)
 
     options = pymunk.pygame_util.DrawOptions(display)
     mass = 4
@@ -129,7 +121,7 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
     left_wall = create_border(RADIUS*2, HEIGHT*10, (RADIUS, HEIGHT/2))
     right_wall = create_border(RADIUS*2, HEIGHT*10, (WIDTH, HEIGHT/2))
     ceiling = create_border(WIDTH, RADIUS*1.8, (WIDTH/2, RADIUS))
-    wood = wood_structure(60, 200, (1000, 600))
+    # wood = wood_structure(60, 200, (1000, 600))
     
 
     
@@ -137,7 +129,7 @@ def Simulation(WIDTH, HEIGHT, RADIUS):
     simulation.add(left_wall.body, left_wall)
     simulation.add(right_wall.body, right_wall)
     simulation.add(ceiling.body, ceiling)
-    simulation.add(wood.body, wood)
+    # simulation.add(wood.body, wood)
 
     bird_fly = False
     pig_num = 0
